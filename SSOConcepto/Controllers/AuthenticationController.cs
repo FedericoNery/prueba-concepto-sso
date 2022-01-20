@@ -2,6 +2,7 @@
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SSOConcepto.DataContract;
@@ -88,25 +89,28 @@ namespace SSOConcepto.Controllers
         }
 
         [HttpPost("signin/google")]
-        public async Task<ActionResult> SignInGoogle([FromBody] LoginDC loginDC)
+        public async Task<ActionResult> SignInGoogle([FromBody] GoogleLoginDC googleLoginDC)
         {
-            var google_csrf_name = "g_csrf_token";
+            /*var google_csrf_name = "g_csrf_token";
             var cookie = Request.Cookies[google_csrf_name];
             if (cookie == null)
                 return BadRequest("Error bad request");
             var requestBody = Request.Form[google_csrf_name];
             if (requestBody != cookie)
                 return BadRequest("Error bad request");
-            var idtoken = Request.Form["credential"];
-            GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(idtoken);
+            var idtoken = Request.Form["credential"];*/
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(googleLoginDC.idToken).ConfigureAwait(false);
+                return Ok(payload);
+            }
+            catch (InvalidJwtException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             //TempDataAttribute["name"] = payload.Name;
             //TempDataAttribute["email"] = payload.Email;
-            return Ok(new
-            {
-                Name = payload.Name,
-                Email = payload.Email,
-                URL = "http://localhost:3000/home"
-            });
+            
         }
 
         [HttpPost("logout")]

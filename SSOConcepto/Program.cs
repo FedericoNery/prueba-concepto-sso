@@ -8,6 +8,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var corsPolicy = "policy";
 
 var migrationsAssembly = Assembly.GetExecutingAssembly().GetName().ToString();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -103,6 +104,21 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddCors(
+    options =>
+    {
+        options.AddPolicy(
+            corsPolicy,
+            builder =>
+            {
+                builder.AllowAnyOrigin();
+                builder.AllowAnyHeader();
+                builder.AllowAnyMethod();
+                builder.Build();
+                //builder.SetIsOriginAllowedToAllowWildcardSubdomains();
+                //builder.AllowCredentials();
+            });
+    });
 
 var app = builder.Build();
 
@@ -125,6 +141,7 @@ app.UseRouting();
     }
 ));*/
 app.UseAuthentication();
+app.UseCors(corsPolicy);
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
@@ -133,5 +150,4 @@ app.UseEndpoints(endpoints =>
 });
 
 app.UseIdentityServer();
-
 app.Run();
